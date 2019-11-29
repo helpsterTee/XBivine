@@ -15,6 +15,9 @@ namespace XBivine.Database
         {
             this._sqliteConn = new SQLiteConnection("Data Source=database.sqlite;Version=3;");
             this._sqliteConn.Open();
+
+            //init
+            CreateSchema();
         }
 
         private void CreateSchema()
@@ -22,16 +25,17 @@ namespace XBivine.Database
             SQLiteCommand cm = _sqliteConn.CreateCommand();
             cm.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='projects';";
             string name = (string)cm.ExecuteScalar();
-            if (name == null)
+            
+            if (!String.IsNullOrEmpty(name))
             {
                 Console.WriteLine("[SQLite]: Schema exists, skipping");
                 return;
             }
 
             Console.WriteLine("[SQLite]: Creating Schema");
-            ExecuteNonQuery("CREATE TABLE settings (id integer primary key autoincrement, string key, string value);");
+            ExecuteNonQuery("CREATE TABLE settings (id integer primary key autoincrement, key string, value string);");
             ExecuteNonQuery("CREATE TABLE projects (id integer primary key autoincrement, version integer, projectName string, author string, created date, lastChanged date);");
-            ExecuteNonQuery("CREATE TABLE ifcEntity (id integer primary key autoincrement, string ifcClass, string guid, string name, string description, parentId integer, projectId integer, FOREIGN KEY (projectId) REFERENCES projects(id));");
+            ExecuteNonQuery("CREATE TABLE ifcEntity (id integer primary key autoincrement, ifcClass string, guid string, name string, description string, parentId integer, projectId integer, FOREIGN KEY (projectId) REFERENCES projects(id));");
         }
 
         private SQLiteCommand ExecuteNonQuery(string commandText)
