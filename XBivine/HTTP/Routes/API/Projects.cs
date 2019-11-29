@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using XBivine.Database;
 using XBivine.Model;
 
 namespace XBivine.HTTP.Routes.API
@@ -18,19 +19,25 @@ namespace XBivine.HTTP.Routes.API
         [RestRoute(HttpMethod = HttpMethod.GET, PathInfo = "/api/projects")]
         public IHttpContext GetProjects(IHttpContext ctx)
         {
-            MProject p1 = new MProject();
-            p1.ProjectID = 0;
-            p1.ProjectVersion = 1;
-            p1.Author = "helpsterTee";
-            p1.ProjectName = "Dummy Project";
-            p1.Created = new DateTime();
-            p1.LastChanged = new DateTime();
+            Dictionary<int, MProject> projs = SqliteDb.GetProjects();
+            HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, JsonConvert.SerializeObject(projs, Formatting.Indented));
+            return ctx;
+        }
 
-            Dictionary<string, MProject[]> projects = new Dictionary<string, MProject[]>
-            {
-                { "projects", new MProject[]{ p1 } }
-            };
-            HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, JsonConvert.SerializeObject(projects, Formatting.Indented));
+        [RestRoute(HttpMethod = HttpMethod.GET, PathInfo = "/api/debug/insertTestProject")]
+        public IHttpContext InsertTestProject(IHttpContext ctx)
+        {
+            MProject test = new MProject();
+            test.ProjectVersion = 1337;
+            test.Author = "TestAuthor";
+            test.ProjectName = "A Testproject";
+            test.Created = DateTime.Now;
+            test.LastChanged = DateTime.Now;
+
+            long id = SqliteDb.InsertProject(test);
+            test.ProjectID = (int)id;
+
+            HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, JsonConvert.SerializeObject(test, Formatting.Indented));
             return ctx;
         }
 

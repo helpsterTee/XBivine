@@ -4,17 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
+using XBivine.Model;
 
 namespace XBivine.Database
 {
     class SqliteDb
     {
-        SQLiteConnection _sqliteConn;
+        static SQLiteConnection _sqliteConn;
 
         public SqliteDb()
         {
-            this._sqliteConn = new SQLiteConnection("Data Source=database.sqlite;Version=3;");
-            this._sqliteConn.Open();
+            _sqliteConn = new SQLiteConnection("Data Source=database.sqlite;Version=3;");
+            _sqliteConn.Open();
 
             //init
             CreateSchema();
@@ -58,5 +59,44 @@ namespace XBivine.Database
             ExecuteNonQuery("INSERT INTO settings (key, value) VALUES ('version', '1')");
         }
 
+        //TODO: We need to refactor this later, this is just a quick and dirty hack for sqlite support. Create an interface and generalize db usage to multiple backend providers (MariaDB)
+        public static long InsertProject(MProject p)
+        {
+            SQLiteCommand cm = _sqliteConn.CreateCommand();
+            cm.CommandText = "INSERT INTO projects (version, projectName, author, created, lastChanged) VALUES (@version, @projectName, @author, @created, @lastChanged);";
+            cm.Prepare();
+
+            cm.Parameters.AddWithValue("@version", p.ProjectVersion);
+            cm.Parameters.AddWithValue("@projectName", p.ProjectName);
+            cm.Parameters.AddWithValue("@author", p.Author);
+            cm.Parameters.AddWithValue("@created", p.Created);
+            cm.Parameters.AddWithValue("@lastChanged", p.LastChanged);
+
+            cm.ExecuteNonQuery();
+
+            return _sqliteConn.LastInsertRowId;
+        }
+
+        public static Dictionary<int,MProject> GetProjects()
+        {
+            Dictionary<int, MProject> projs = new Dictionary<int, MProject>();
+
+            SQLiteCommand cm = _sqliteConn.CreateCommand();
+            cm.CommandText = "SELECT id, version, projectName, author, created, lastChanged FROM projects WHERE 1;";
+            SQLiteDataReader rd = cm.ExecuteReader();
+            while (rd.Read())
+            {
+                MProject p = new MProject();
+                p.ProjectID = rd.GetInt32(0);
+                p.ProjectVersion = rd.GetInt32(1);
+                p.ProjectName = rd.GetString(2);
+                p.Author = rd.GetString(3);
+                p.Created = rd.GetDateTime(4);
+                p.LastChanged = rd.GetDateTime(5);
+                projs.Add(p.ProjectID, p);
+            }
+
+            return projs;
+        }
     }
 }
