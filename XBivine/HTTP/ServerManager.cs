@@ -14,7 +14,10 @@ namespace XBivine.HTTP
 
         public ServerManager()
         {
-            Srv = new RestServer();
+            ServerSettings settings = new ServerSettings();
+            settings.PublicFolder = new PublicFolder("./HTTP/Static");
+            Srv = new RestServer(settings);
+
             Srv.LogToConsole().Start();
         }
 
