@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xbim.Ifc;
-using Xbim.Ifc2x3.Kernel;
+using Xbim.Ifc4.Interfaces;
 using XBivine.Model;
 
 namespace XBivine.XBim
@@ -43,7 +43,7 @@ namespace XBivine.XBim
         public MProject GetProject()
         {
             MProject proj = new MProject();
-            IfcProject iProj = _model.Instances.OfType<IfcProject>().First();
+            IIfcProject iProj = _model.Instances.OfType<IIfcProject>().First();
 
             proj.FileName = file;
 
@@ -64,6 +64,50 @@ namespace XBivine.XBim
             proj.ProjectName = iProj.Name;
 
             return proj;
+        }
+
+        // Methods below for use with the JSONDeserializer
+        public Dictionary<string, IIfcActor> GetActors()
+        {
+            Dictionary<string, IIfcActor> actors = new Dictionary<string, IIfcActor>();
+            foreach(IIfcActor act in _model.Instances.OfType<IIfcActor>())
+            {
+                actors.Add(act.GlobalId, act);
+            }
+            return actors;
+        }
+
+        public Dictionary<string, IfcObjectAttributes> GetObjectsOfClass(string classname)
+        {
+            Dictionary<string, IfcObjectAttributes> objs = new Dictionary<string, IfcObjectAttributes>();
+
+            foreach (var obj in _model.Instances.Where(x => x.GetType().Name.Equals(classname)))
+            {
+                if (obj is IIfcObject)
+                {
+                    IIfcObject ifcObj = (IIfcObject)obj;
+                    bool hasGeometry = false;
+                    if (obj is IIfcProduct)
+                    {
+                        IIfcProduct prod = (IIfcProduct)obj;
+                        if (prod.Representation != null)
+                        {
+                            hasGeometry = true;
+                        }
+                    }
+
+                    objs.Add(ifcObj.GlobalId, new IfcObjectAttributes
+                    {
+                        Name = ifcObj.Name,
+                        Description = ifcObj.Description,
+                        GlobalId = ifcObj.GlobalId,
+                        Namespace = obj.GetType().Namespace,
+                        IfcType = obj.GetType().Name,
+                        HasGeometry = hasGeometry
+                    });
+                }
+            }
+            return objs;
         }
     }
 }

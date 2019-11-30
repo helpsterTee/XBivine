@@ -83,5 +83,72 @@ namespace XBivine.HTTP.Routes.API
             HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, JsonConvert.SerializeObject(filehandles, Formatting.Indented));
             return ctx;
         }
+
+        private XBimParser GetSession(int sessionid)
+        {
+            if (sessions.ContainsKey(sessionid))
+            {
+                XBimParser parsomator;
+                sessions.TryGetValue(sessionid, out parsomator);
+                return parsomator;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private XBimParser GetSession(string sessionid)
+        {
+            int iSessionid;
+            bool success = Int32.TryParse(sessionid, out iSessionid);
+            if (success)
+            {
+                return GetSession(iSessionid);
+            } else
+            {
+                return null;
+            }
+        }
+
+
+        #region Getters
+
+        [RestRoute(HttpMethod = HttpMethod.GET, PathInfo = "/api/xbim/actors")]
+        public IHttpContext GetActors(IHttpContext ctx)
+        {
+            if (ctx.Request.QueryString["sessionid"] == null)
+            {
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"error\", reason: \"missing parameter\"}");
+                return ctx;
+            }
+
+            XBimParser parse = GetSession(ctx.Request.QueryString["sessionid"]);
+            var actors = parse.GetActors();
+            HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, JsonConvert.SerializeObject(actors, Formatting.Indented));
+
+            return ctx;
+        }
+
+        [RestRoute(HttpMethod = HttpMethod.GET, PathInfo = "/api/xbim/objectsOfClass")]
+        public IHttpContext GetObjectsOfClassName(IHttpContext ctx)
+        {
+            if (ctx.Request.QueryString["sessionid"] == null || ctx.Request.QueryString["classname"] == null)
+            {
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"error\", reason: \"missing parameter\"}");
+                return ctx;
+            }
+
+            XBimParser parse = GetSession(ctx.Request.QueryString["sessionid"]);
+            var objects = parse.GetObjectsOfClass(ctx.Request.QueryString["classname"]);
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, JsonConvert.SerializeObject(objects, Formatting.Indented, settings));
+
+            return ctx;
+        }
+
+        #endregion
+
+
     }
 }
