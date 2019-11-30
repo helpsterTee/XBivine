@@ -64,7 +64,6 @@ namespace XBivine.XBim
             proj.ProjectName = iProj.Name;
 
             return proj;
-
         }
     }
 }
