@@ -34,6 +34,7 @@ namespace XBivine.HTTP.Routes.API
 
             MProject p = SqliteDb.GetProject(Int32.Parse(ctx.Request.QueryString["projectid"]));
             XBimParser parsival = new XBimParser(p.FileName);
+            parsival.LoadGeometry();
             if (parsival.HasLoaded())
             {
                 sessions.Add(sessionCounter, parsival);
@@ -141,6 +142,23 @@ namespace XBivine.HTTP.Routes.API
 
             XBimParser parse = GetSession(ctx.Request.QueryString["sessionid"]);
             var objects = parse.GetObjectsOfClass(ctx.Request.QueryString["classname"]);
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, JsonConvert.SerializeObject(objects, Formatting.Indented, settings));
+
+            return ctx;
+        }
+
+        [RestRoute(HttpMethod = HttpMethod.GET, PathInfo = "/api/xbim/shapesOfProduct")]
+        public IHttpContext GetShapesOfProduct(IHttpContext ctx)
+        {
+            if (ctx.Request.QueryString["sessionid"] == null || ctx.Request.QueryString["guid"] == null)
+            {
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"error\", reason: \"missing parameter\"}");
+                return ctx;
+            }
+
+            XBimParser parse = GetSession(ctx.Request.QueryString["sessionid"]);
+            var objects = parse.GetShapesOfProduct(ctx.Request.QueryString["guid"]);
             JsonSerializerSettings settings = new JsonSerializerSettings();
             HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, JsonConvert.SerializeObject(objects, Formatting.Indented, settings));
 
