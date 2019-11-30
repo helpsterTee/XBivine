@@ -14,7 +14,6 @@ namespace XBivine.Model
         public string Author;
         public DateTime Created;
         public DateTime LastChanged;
-
-
+        public string FileName;
     }
 }

@@ -112,6 +112,7 @@
     <Compile Include="Database\SqliteDb.cs" />
     <Compile Include="HTTP\Routes\API\Projects.cs" />
     <Compile Include="HTTP\Routes\API\GetVersion.cs" />
+    <Compile Include="HTTP\Routes\API\XBimApi.cs" />
     <Compile Include="HTTP\ServerManager.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Model\MProject.cs" />
@@ -127,6 +128,9 @@
   <ItemGroup>
     <Content Include="HTTP\Static\index.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Storage\readme.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

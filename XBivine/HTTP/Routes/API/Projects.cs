@@ -36,14 +36,14 @@ namespace XBivine.HTTP.Routes.API
                 using (Stream input = ((HttpRequest)ctx.Request).Advanced.InputStream)
                 {
                     var parser = MultipartFormDataParser.Parse(input);
-                    //var file = parser.GetParameterValue("ifcfile");
 
-                    foreach (HttpMultipartParser.FilePart file in parser.Files)
+                    foreach (FilePart file in parser.Files)
                     {
                         using (BinaryReader reader = new BinaryReader(file.Data, ctx.Request.ContentEncoding))
                         {
-                            string tmpfile = Path.Combine(Path.GetTempPath(), DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString() + ".ifc");
-                            using (BinaryWriter output = new BinaryWriter(File.Open(tmpfile, FileMode.Create)))
+                            string filename = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString() + ".ifc";
+                            string storagefile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Storage", filename);
+                            using (BinaryWriter output = new BinaryWriter(File.Open(storagefile, FileMode.Create)))
                             {
                                 byte[] chunk = reader.ReadBytes(chunksize);
                                 while (chunk.Length > 0)
@@ -54,7 +54,7 @@ namespace XBivine.HTTP.Routes.API
                             }
 
                             //ifc file available here
-                            XBimParser xbparse = new XBimParser(tmpfile);
+                            XBimParser xbparse = new XBimParser(storagefile);
                             MProject mp = xbparse.GetProject();
                             SqliteDb.InsertProject(mp);
                             HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"success\"}");
@@ -63,7 +63,6 @@ namespace XBivine.HTTP.Routes.API
 
                 }
             }
-
             return ctx;
         }
 

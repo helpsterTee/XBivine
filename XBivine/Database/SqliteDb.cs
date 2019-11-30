@@ -35,8 +35,7 @@ namespace XBivine.Database
 
             Console.WriteLine("[SQLite]: Creating Schema");
             ExecuteNonQuery("CREATE TABLE settings (id integer primary key autoincrement, key string, value string);");
-            ExecuteNonQuery("CREATE TABLE projects (id integer primary key autoincrement, version integer, projectName string, author string, created date, lastChanged date);");
-            ExecuteNonQuery("CREATE TABLE ifcEntity (id integer primary key autoincrement, ifcClass string, guid string, name string, description string, parentId integer, projectId integer, FOREIGN KEY (projectId) REFERENCES projects(id));");
+            ExecuteNonQuery("CREATE TABLE projects (id integer primary key autoincrement, version integer, projectName string, author string, filename string, created date, lastChanged date);");
         }
 
         private SQLiteCommand ExecuteNonQuery(string commandText)
@@ -63,12 +62,13 @@ namespace XBivine.Database
         public static long InsertProject(MProject p)
         {
             SQLiteCommand cm = _sqliteConn.CreateCommand();
-            cm.CommandText = "INSERT INTO projects (version, projectName, author, created, lastChanged) VALUES (@version, @projectName, @author, @created, @lastChanged);";
+            cm.CommandText = "INSERT INTO projects (version, projectName, author, filename, created, lastChanged) VALUES (@version, @projectName, @author, @filename, @created, @lastChanged);";
             cm.Prepare();
 
             cm.Parameters.AddWithValue("@version", p.ProjectVersion);
             cm.Parameters.AddWithValue("@projectName", p.ProjectName);
             cm.Parameters.AddWithValue("@author", p.Author);
+            cm.Parameters.AddWithValue("@filename", p.FileName);
             cm.Parameters.AddWithValue("@created", p.Created);
             cm.Parameters.AddWithValue("@lastChanged", p.LastChanged);
 
@@ -82,7 +82,7 @@ namespace XBivine.Database
             Dictionary<int, MProject> projs = new Dictionary<int, MProject>();
 
             SQLiteCommand cm = _sqliteConn.CreateCommand();
-            cm.CommandText = "SELECT id, version, projectName, author, created, lastChanged FROM projects WHERE 1;";
+            cm.CommandText = "SELECT id, version, projectName, author, filename, created, lastChanged FROM projects WHERE 1;";
             SQLiteDataReader rd = cm.ExecuteReader();
             while (rd.Read())
             {
@@ -91,12 +91,43 @@ namespace XBivine.Database
                 p.ProjectVersion = rd.GetInt32(1);
                 p.ProjectName = rd.GetString(2);
                 p.Author = rd.GetString(3);
-                p.Created = rd.GetDateTime(4);
-                p.LastChanged = rd.GetDateTime(5);
+                p.FileName = rd.GetString(4);
+                p.Created = rd.GetDateTime(5);
+                p.LastChanged = rd.GetDateTime(6);
                 projs.Add(p.ProjectID, p);
             }
 
             return projs;
+        }
+
+        public static MProject GetProject(int projectid)
+        {
+            Dictionary<int, MProject> projs = new Dictionary<int, MProject>();
+
+            SQLiteCommand cm = _sqliteConn.CreateCommand();
+            cm.CommandText = "SELECT id, version, projectName, author, filename, created, lastChanged FROM projects WHERE id = @projectid;";
+            cm.Prepare();
+
+            cm.Parameters.AddWithValue("@projectid", projectid);
+
+            SQLiteDataReader rd = cm.ExecuteReader();
+            if (rd.HasRows)
+            {
+                rd.Read();
+                MProject p = new MProject();
+                p.ProjectID = rd.GetInt32(0);
+                p.ProjectVersion = rd.GetInt32(1);
+                p.ProjectName = rd.GetString(2);
+                p.Author = rd.GetString(3);
+                p.FileName = rd.GetString(4);
+                p.Created = rd.GetDateTime(5);
+                p.LastChanged = rd.GetDateTime(6);
+                projs.Add(p.ProjectID, p);
+
+                return p;
+            }
+
+            return null;
         }
     }
 }

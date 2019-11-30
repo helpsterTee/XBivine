@@ -1,0 +1,28 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>XBivine</title>
+  <meta name="author" content="helpsterTee">
+
+  <!--<link rel="stylesheet" href="css/styles.css?v=1.0">-->
+
+</head>
+
+<body>
+  <!--<script src="js/scripts.js"></script>-->
+  <div>
+    Upload IFC file:<br/>
+    <form method="POST" action="./api/projects/add" enctype='multipart/form-data'>
+      <input type="file" name="ifcfile" />
+      <input type="submit" name="submit" value="submit" />
+    </form>
+  </div>
+  <div>
+    API:<br />
+    <a href="./api/projects" target="_blank">Projects</a>
+  </div>
+</body>
+</html>
