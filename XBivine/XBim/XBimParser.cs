@@ -197,5 +197,94 @@ namespace XBivine.XBim
             
             return shapes;
         }
+
+        public Dictionary<string, IfcElementRepresentation> GetShapes()
+        {
+            Dictionary<string, IfcElementRepresentation> elementReps = new Dictionary<string, IfcElementRepresentation>();
+            IEnumerable<IIfcElement> prod = _model.Instances.OfType<IIfcElement>();
+
+            foreach (IIfcElement e in prod)
+            {
+                IIfcProductRepresentation prodrep = e.Representation;
+
+                IfcElementRepresentation eleRep = new IfcElementRepresentation();
+                eleRep.attributes = new IfcObjectAttributes();
+                eleRep.attributes.GlobalId = e.GlobalId;
+                eleRep.attributes.Description = e.Description;
+                eleRep.attributes.HasGeometry = true;
+                eleRep.attributes.IfcType = e.GetType().Name;
+                eleRep.attributes.Namespace = e.GetType().Namespace;
+                eleRep.attributes.Name = e.Name;
+
+                eleRep.shapes = new Dictionary<int, IfcObjectShapeRepresentation>();
+
+                //https://github.com/xBimTeam/XbimGeometry/issues/131
+                using (var modgeom = _model.GeometryStore.BeginRead())
+                {
+                    var instances = modgeom.ShapeInstances;
+                    var geometries = instances.Select(i => modgeom.ShapeGeometryOfInstance(i) as IXbimShapeGeometryData);
+                    List<bool> geometryHasTransformation = new List<bool>();
+                    foreach (var instance in instances)
+                    {
+                        if (instance.Transformation.Str() == "") geometryHasTransformation.Add(false);
+                        else geometryHasTransformation.Add(true);
+                    }
+
+                    int geometrycount = 0;
+                    foreach (var geometry in geometries)
+                    {
+                        List<List<double>> vertices = new List<List<double>>();
+                        using (var ms = new MemoryStream(geometry.ShapeData))
+                        using (var br = new BinaryReader(ms))
+                        {
+                            var mesh = br.ReadShapeTriangulation();
+                            if (mesh == null) continue;
+
+                            if (geometryHasTransformation.ElementAt(geometrycount))
+                            {
+                                var transform = instances.ElementAt(0).Transformation;
+
+                                mesh = mesh.Transform(transform);
+                            }
+
+                            foreach (var Meshvertex in mesh.Vertices)
+                            {
+                                List<double> vertex = new List<double>
+                                        {
+                                            Math.Round(Meshvertex.X,4),
+                                            Math.Round(Meshvertex.Y,4),
+                                            Math.Round(Meshvertex.Z,4)
+                                        };
+                                vertices.Add(vertex);
+                            }
+
+                            var faces = mesh.Faces;
+                            var indices = new List<int>();
+                            var normals = new List<XbimPackedNormal>();
+
+                            foreach (var face in faces)
+                            {
+                                foreach (var index in face.Indices)
+                                    indices.Add(index);
+                                foreach (var normal in face.Normals)
+                                    normals.Add(normal);
+                            }
+
+                            IfcObjectShapeRepresentation objShape = new IfcObjectShapeRepresentation();
+                            objShape.Faces = faces;
+                            objShape.Indices = indices;
+                            objShape.Normals = normals;
+                            objShape.Vertices = vertices;
+
+                            eleRep.shapes.Add(geometrycount, objShape);
+                        }
+                        geometrycount++;
+                    }
+                }
+                elementReps.Add(eleRep.attributes.GlobalId,eleRep);
+            }
+
+            return elementReps;
+        }
     }
 }

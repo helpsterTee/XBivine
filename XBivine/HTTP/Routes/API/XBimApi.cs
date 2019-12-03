@@ -165,6 +165,23 @@ namespace XBivine.HTTP.Routes.API
             return ctx;
         }
 
+        [RestRoute(HttpMethod = HttpMethod.GET, PathInfo = "/api/xbim/shapes")]
+        public IHttpContext GetShapes(IHttpContext ctx)
+        {
+            if (ctx.Request.QueryString["sessionid"] == null)
+            {
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"error\", reason: \"missing parameter\"}");
+                return ctx;
+            }
+
+            XBimParser parse = GetSession(ctx.Request.QueryString["sessionid"]);
+            var objects = parse.GetShapes();
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, JsonConvert.SerializeObject(objects, Formatting.Indented, settings));
+
+            return ctx;
+        }
+
         #endregion
 
 

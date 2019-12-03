@@ -128,6 +128,7 @@
     <Compile Include="Model\MProject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XBim\IfcElementRepresentation.cs" />
     <Compile Include="XBim\IfcObjectAttributes.cs" />
     <Compile Include="XBim\IfcObjectShapeRepresentation.cs" />
     <Compile Include="XBim\XBimParser.cs" />
