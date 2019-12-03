@@ -57,7 +57,7 @@ namespace XBivine.HTTP.Routes.API
                             XBimParser xbparse = new XBimParser(storagefile);
                             MProject mp = xbparse.GetProject();
                             SqliteDb.InsertProject(mp);
-                            HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"success\"}");
+                            HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{\"status\": \"success\"}");
                         }
                     }
 

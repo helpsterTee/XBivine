@@ -28,7 +28,7 @@ namespace XBivine.HTTP.Routes.API
         {
             if (ctx.Request.QueryString["projectid"] == null)
             {
-                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"error\", reason: \"not found\"}");
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{\"status\": \"error\", \"reason\": \"not found\"}");
                 return ctx;
             }
 
@@ -38,7 +38,7 @@ namespace XBivine.HTTP.Routes.API
             if (parsival.HasLoaded())
             {
                 sessions.Add(sessionCounter, parsival);
-                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"success\", session: "+sessionCounter.ToString()+"}");
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{\"status\": \"success\", \"session\": " + sessionCounter.ToString()+"}");
                 sessionCounter++;
             }
             
@@ -50,7 +50,7 @@ namespace XBivine.HTTP.Routes.API
         {
             if (ctx.Request.QueryString["sessionid"] == null)
             {
-                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"error\", reason: \"not found\"}");
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{\"status\": \"error\", \"reason\": \"not found\"}");
                 return ctx;
             }
 
@@ -61,10 +61,10 @@ namespace XBivine.HTTP.Routes.API
                 sessions.TryGetValue(sessionid, out parsomator);
                 parsomator.Unload();
                 sessions.Remove(sessionid);
-                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"success\"}");
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{\"status\": \"success\"}");
             } else
             {
-                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"error\", reason: \"session not found\"}");
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{\"status\": \"error\", \"reason\": \"session not found\"}");
             }
 
             return ctx;
@@ -120,7 +120,7 @@ namespace XBivine.HTTP.Routes.API
         {
             if (ctx.Request.QueryString["sessionid"] == null)
             {
-                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"error\", reason: \"missing parameter\"}");
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{\"status\": \"error\", \"reason\": \"missing parameter\"}");
                 return ctx;
             }
 
@@ -136,7 +136,7 @@ namespace XBivine.HTTP.Routes.API
         {
             if (ctx.Request.QueryString["sessionid"] == null || ctx.Request.QueryString["classname"] == null)
             {
-                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"error\", reason: \"missing parameter\"}");
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{\"status\": \"error\", \"reason\": \"missing parameter\"}");
                 return ctx;
             }
 
@@ -153,7 +153,7 @@ namespace XBivine.HTTP.Routes.API
         {
             if (ctx.Request.QueryString["sessionid"] == null || ctx.Request.QueryString["guid"] == null)
             {
-                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"error\", reason: \"missing parameter\"}");
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{\"status\": \"error\", \"reason\": \"missing parameter\"}");
                 return ctx;
             }
 
@@ -170,7 +170,7 @@ namespace XBivine.HTTP.Routes.API
         {
             if (ctx.Request.QueryString["sessionid"] == null)
             {
-                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{status: \"error\", reason: \"missing parameter\"}");
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{\"status\": \"error\", \"reason\": \"missing parameter\"}");
                 return ctx;
             }
 
