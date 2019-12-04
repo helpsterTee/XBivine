@@ -125,9 +125,9 @@ namespace XBivine.XBim
             return objs;
         }
 
-        public Dictionary<int, IfcObjectShapeRepresentation> GetShapesOfProduct(string guid)
+        public List<IfcObjectShapeRepresentation> GetShapesOfProduct(string guid)
         {
-            Dictionary<int, IfcObjectShapeRepresentation> shapes = new Dictionary<int, IfcObjectShapeRepresentation>();
+            List<IfcObjectShapeRepresentation> shapes = new List<IfcObjectShapeRepresentation>();
             IIfcProduct prod = _model.Instances.OfType<IIfcProduct>().Where(x => x.GlobalId.Equals(guid)).First();
             IIfcProductRepresentation prodrep = prod.Representation;
 
@@ -189,7 +189,7 @@ namespace XBivine.XBim
                         objShape.Normals = normals;
                         objShape.Vertices = vertices;
 
-                        shapes.Add(geometrycount, objShape);
+                        shapes.Add(objShape);
                     }
                     geometrycount++;
                 }
@@ -198,11 +198,18 @@ namespace XBivine.XBim
             return shapes;
         }
 
-        public Dictionary<string, IfcElementRepresentation> GetShapes()
+        public string GetSILengthUnit()
         {
-            Dictionary<string, IfcElementRepresentation> elementReps = new Dictionary<string, IfcElementRepresentation>();
-            IEnumerable<IIfcElement> prod = _model.Instances.OfType<IIfcElement>();
+            IIfcSIUnit si = _model.Instances.OfType<IIfcSIUnit>().Where(unit => unit.UnitType == IfcUnitEnum.LENGTHUNIT).First();
+            return si.Prefix.ToString() + si.Name.ToString();
+        }
 
+        public List<IfcElementRepresentation> GetShapes()
+        {
+            List<IfcElementRepresentation> elementReps = new List<IfcElementRepresentation>();
+
+            //iterate products
+            IEnumerable<IIfcElement> prod = _model.Instances.OfType<IIfcElement>();
             foreach (IIfcElement e in prod)
             {
                 IIfcProductRepresentation prodrep = e.Representation;
@@ -216,12 +223,15 @@ namespace XBivine.XBim
                 eleRep.attributes.Namespace = e.GetType().Namespace;
                 eleRep.attributes.Name = e.Name;
 
-                eleRep.shapes = new Dictionary<int, IfcObjectShapeRepresentation>();
+                eleRep.shapes = new List<IfcObjectShapeRepresentation>();
 
                 //https://github.com/xBimTeam/XbimGeometry/issues/131
                 using (var modgeom = _model.GeometryStore.BeginRead())
                 {
-                    var instances = modgeom.ShapeInstances;
+                    var instances = modgeom.ShapeInstances.Where(
+                        si => si.RepresentationType == XbimGeometryRepresentationType.OpeningsAndAdditionsIncluded
+                        );
+
                     var geometries = instances.Select(i => modgeom.ShapeGeometryOfInstance(i) as IXbimShapeGeometryData);
                     List<bool> geometryHasTransformation = new List<bool>();
                     foreach (var instance in instances)
@@ -266,6 +276,10 @@ namespace XBivine.XBim
                             {
                                 foreach (var index in face.Indices)
                                     indices.Add(index);
+                                if (face.Indices.Count % 3 != 0)
+                                {
+                                    Console.WriteLine("Face not a triangle!: " + face.Indices.Count.ToString());
+                                }
                                 foreach (var normal in face.Normals)
                                     normals.Add(normal);
                             }
@@ -276,12 +290,12 @@ namespace XBivine.XBim
                             objShape.Normals = normals;
                             objShape.Vertices = vertices;
 
-                            eleRep.shapes.Add(geometrycount, objShape);
+                            eleRep.shapes.Add(objShape);
                         }
                         geometrycount++;
                     }
                 }
-                elementReps.Add(eleRep.attributes.GlobalId,eleRep);
+                elementReps.Add(eleRep);
             }
 
             return elementReps;

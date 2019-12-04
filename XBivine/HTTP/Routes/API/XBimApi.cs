@@ -182,6 +182,23 @@ namespace XBivine.HTTP.Routes.API
             return ctx;
         }
 
+        [RestRoute(HttpMethod = HttpMethod.GET, PathInfo = "/api/xbim/siLengthUnit")]
+        public IHttpContext GetSILengthUnit(IHttpContext ctx)
+        {
+            if (ctx.Request.QueryString["sessionid"] == null)
+            {
+                HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{\"status\": \"error\", \"reason\": \"missing parameter\"}");
+                return ctx;
+            }
+
+            XBimParser parse = GetSession(ctx.Request.QueryString["sessionid"]);
+            string si = parse.GetSILengthUnit();
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            HttpResponseExtensions.SendResponse(ctx.Response, HttpStatusCode.Ok, "{\"status\": \"success\", \"unit\": \""+si+"\"}");
+
+            return ctx;
+        }
+
         #endregion
 
 

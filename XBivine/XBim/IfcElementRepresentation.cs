@@ -9,6 +9,6 @@ namespace XBivine.XBim
     class IfcElementRepresentation
     {
         public IfcObjectAttributes attributes;
-        public Dictionary<int, IfcObjectShapeRepresentation> shapes;
+        public List<IfcObjectShapeRepresentation> shapes;
     }
 }
