@@ -229,7 +229,8 @@ namespace XBivine.XBim
                 using (var modgeom = _model.GeometryStore.BeginRead())
                 {
                     var instances = modgeom.ShapeInstances.Where(
-                        si => si.RepresentationType == XbimGeometryRepresentationType.OpeningsAndAdditionsIncluded
+                        si => si.RepresentationType == XbimGeometryRepresentationType.OpeningsAndAdditionsIncluded &&
+                        si.IfcProductLabel == e.EntityLabel
                         );
 
                     var geometries = instances.Select(i => modgeom.ShapeGeometryOfInstance(i) as IXbimShapeGeometryData);
