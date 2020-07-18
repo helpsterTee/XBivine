@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using XBivine.Model;
 
 namespace XBivine.Database
 {
     class SqliteDb
     {
-        static SQLiteConnection _sqliteConn;
+        static SqliteConnection _sqliteConn;
 
         public SqliteDb()
         {
-            _sqliteConn = new SQLiteConnection("Data Source=database.sqlite;Version=3;");
+            _sqliteConn = new SqliteConnection("Data Source=database.sqlite;");
             _sqliteConn.Open();
 
             //init
@@ -23,7 +23,7 @@ namespace XBivine.Database
 
         private void CreateSchema()
         {
-            SQLiteCommand cm = _sqliteConn.CreateCommand();
+            SqliteCommand cm = _sqliteConn.CreateCommand();
             cm.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='projects';";
             string name = (string)cm.ExecuteScalar();
             
@@ -38,9 +38,9 @@ namespace XBivine.Database
             ExecuteNonQuery("CREATE TABLE projects (id integer primary key autoincrement, version integer, projectName string, author string, filename string, created date, lastChanged date);");
         }
 
-        private SQLiteCommand ExecuteNonQuery(string commandText)
+        private SqliteCommand ExecuteNonQuery(string commandText)
         {
-            SQLiteCommand comm = _sqliteConn.CreateCommand();
+            SqliteCommand comm = _sqliteConn.CreateCommand();
             comm.CommandText = commandText;
             comm.ExecuteNonQuery();
             return comm;
@@ -48,7 +48,7 @@ namespace XBivine.Database
 
         private object ExecuteScalar(string commandText)
         {
-            SQLiteCommand comm = _sqliteConn.CreateCommand();
+            SqliteCommand comm = _sqliteConn.CreateCommand();
             comm.CommandText = commandText;
             return comm.ExecuteScalar();
         }
@@ -61,7 +61,7 @@ namespace XBivine.Database
         //TODO: We need to refactor this later, this is just a quick and dirty hack for sqlite support. Create an interface and generalize db usage to multiple backend providers (MariaDB)
         public static long InsertProject(MProject p)
         {
-            SQLiteCommand cm = _sqliteConn.CreateCommand();
+            SqliteCommand cm = _sqliteConn.CreateCommand();
             cm.CommandText = "INSERT INTO projects (version, projectName, author, filename, created, lastChanged) VALUES (@version, @projectName, @author, @filename, @created, @lastChanged);";
             cm.Prepare();
 
@@ -72,18 +72,16 @@ namespace XBivine.Database
             cm.Parameters.AddWithValue("@created", p.Created);
             cm.Parameters.AddWithValue("@lastChanged", p.LastChanged);
 
-            cm.ExecuteNonQuery();
-
-            return _sqliteConn.LastInsertRowId;
+            return (long)cm.ExecuteScalar();
         }
 
         public static Dictionary<int,MProject> GetProjects()
         {
             Dictionary<int, MProject> projs = new Dictionary<int, MProject>();
 
-            SQLiteCommand cm = _sqliteConn.CreateCommand();
+            SqliteCommand cm = _sqliteConn.CreateCommand();
             cm.CommandText = "SELECT id, version, projectName, author, filename, created, lastChanged FROM projects WHERE 1;";
-            SQLiteDataReader rd = cm.ExecuteReader();
+            SqliteDataReader rd = cm.ExecuteReader();
             while (rd.Read())
             {
                 MProject p = new MProject();
@@ -104,13 +102,13 @@ namespace XBivine.Database
         {
             Dictionary<int, MProject> projs = new Dictionary<int, MProject>();
 
-            SQLiteCommand cm = _sqliteConn.CreateCommand();
+            SqliteCommand cm = _sqliteConn.CreateCommand();
             cm.CommandText = "SELECT id, version, projectName, author, filename, created, lastChanged FROM projects WHERE id = @projectid;";
             cm.Prepare();
 
             cm.Parameters.AddWithValue("@projectid", projectid);
 
-            SQLiteDataReader rd = cm.ExecuteReader();
+            SqliteDataReader rd = cm.ExecuteReader();
             if (rd.HasRows)
             {
                 rd.Read();
