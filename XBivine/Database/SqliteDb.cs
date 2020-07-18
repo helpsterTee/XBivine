@@ -62,7 +62,7 @@ namespace XBivine.Database
         public static long InsertProject(MProject p)
         {
             SqliteCommand cm = _sqliteConn.CreateCommand();
-            cm.CommandText = "INSERT INTO projects (version, projectName, author, filename, created, lastChanged) VALUES (@version, @projectName, @author, @filename, @created, @lastChanged);";
+            cm.CommandText = "INSERT INTO projects (version, projectName, author, filename, created, lastChanged) VALUES (@version, @projectName, @author, @filename, @created, @lastChanged); SELECT last_insert_rowid();";
             cm.Prepare();
 
             cm.Parameters.AddWithValue("@version", p.ProjectVersion);
